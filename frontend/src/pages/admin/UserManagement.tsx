@@ -4,6 +4,7 @@ import axiosInstance from '../../api/axiosInstance';
 import { User, UserCreate, PaginatedResponse } from '../../types';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
 import { ConfirmationDialog } from '../../components/ConfirmationDialog';
+import { DashboardLayout } from '../../components/DashboardLayout';
 import toast from 'react-hot-toast';
 
 export const UserManagement: React.FC = () => {
@@ -67,14 +68,20 @@ export const UserManagement: React.FC = () => {
   if (isLoading) return <LoadingSpinner fullScreen />;
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <DashboardLayout>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">User Management</h1>
+          <p className="text-gray-600">Manage system users and their roles</p>
+        </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-md hover:shadow-lg transition-all"
         >
-          Create User
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          <span>Create User</span>
         </button>
       </div>
 
@@ -232,7 +239,6 @@ export const UserManagement: React.FC = () => {
         onConfirm={() => deleteUserId && deleteMutation.mutate(deleteUserId)}
         onCancel={() => setDeleteUserId(null)}
       />
-    </div>
+    </DashboardLayout>
   );
 };
-
