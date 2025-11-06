@@ -10,6 +10,8 @@ import toast from 'react-hot-toast';
 
 export const CourseManagement: React.FC = () => {
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [editingCourse, setEditingCourse] = useState<Course | null>(null);
     const [deleteCourseId, setDeleteCourseId] = useState<number | null>(null);
     const queryClient = useQueryClient();
 
@@ -58,6 +60,28 @@ export const CourseManagement: React.FC = () => {
             toast.error(message);
         },
     });
+
+    const updateMutation = useMutation({
+        mutationFn: async ({ id, data }: { id: number; data: CourseCreate }) => {
+            const response = await axiosInstance.patch(`/courses/${id}/`, data);
+            return response.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['courses'] });
+            toast.success('Course updated successfully');
+            setShowEditModal(false);
+            setEditingCourse(null);
+        },
+        onError: (error: any) => {
+            const message = error.response?.data?.code?.[0] || 'Failed to update course';
+            toast.error(message);
+        },
+    });
+
+    const openEditModal = (course: Course) => {
+        setEditingCourse(course);
+        setShowEditModal(true);
+    };
 
     if (isLoading) return <LoadingSpinner fullScreen />;
 
@@ -124,14 +148,20 @@ export const CourseManagement: React.FC = () => {
                                             {course.is_active ? 'Active' : 'Inactive'}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
+                                    <button
+                                    onClick={() => openEditModal(course)}
+                                    className="text-blue-600 hover:text-blue-900"
+                                    >
+                                    Edit
+                                    </button>
                                         <button
-                                            onClick={() => setDeleteCourseId(course.id)}
-                                            className="text-red-600 hover:text-red-900"
-                                        >
-                                            Delete
-                                        </button>
-                                    </td>
+                                             onClick={() => setDeleteCourseId(course.id)}
+                                             className="text-red-600 hover:text-red-900"
+                                         >
+                                             Delete
+                                         </button>
+                                     </td>
                                 </tr>
                             ))}
                         </tbody>
@@ -140,13 +170,37 @@ export const CourseManagement: React.FC = () => {
             </div>
 
             {showCreateModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+            <h2 className="text-xl font-bold mb-4">Create New Course</h2>
+            <CourseForm
+            onSubmit={(data) => createMutation.mutate(data)}
+            onCancel={() => setShowCreateModal(false)}
+            isLoading={createMutation.isPending}
+            teachers={teachers?.results || []}
+            />
+            </div>
+            </div>
+            )}
+
+            {showEditModal && editingCourse && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
                     <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
-                        <h2 className="text-xl font-bold mb-4">Create New Course</h2>
+                        <h2 className="text-xl font-bold mb-4">Edit Course</h2>
                         <CourseForm
-                            onSubmit={(data) => createMutation.mutate(data)}
-                            onCancel={() => setShowCreateModal(false)}
-                            isLoading={createMutation.isPending}
+                            initialData={{
+                                title: editingCourse.title,
+                                code: editingCourse.code,
+                                description: editingCourse.description,
+                                teacher_id: editingCourse.teacher || undefined,
+                                is_active: editingCourse.is_active,
+                            }}
+                            onSubmit={(data) => updateMutation.mutate({ id: editingCourse.id, data })}
+                            onCancel={() => {
+                                setShowEditModal(false);
+                                setEditingCourse(null);
+                            }}
+                            isLoading={updateMutation.isPending}
                             teachers={teachers?.results || []}
                         />
                     </div>

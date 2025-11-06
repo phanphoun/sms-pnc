@@ -10,14 +10,18 @@ import { Role } from './types';
 
 // Pages
 import { Login } from './pages/Login';
+import Help from './pages/Help';
 import { Home } from './pages/Home';
 import { AdminDashboard } from './pages/admin/Dashboard';
 import { UserManagement } from './pages/admin/UserManagement';
 import { CourseManagement } from './pages/admin/CourseManagement';
 import { TeacherDashboard } from './pages/teacher/Dashboard';
 import { GradeEntry } from './pages/teacher/GradeEntry';
+import { MyCourses } from './pages/teacher/MyCourses';
 import { StudentDashboard } from './pages/student/Dashboard';
 import { MyEnrollments } from './pages/student/MyEnrollments';
+import { MyGrades } from './pages/student/MyGrades';
+import { MyProfile } from './pages/student/MyProfile';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -60,8 +64,12 @@ const AppRoutes: React.FC = () => {
 
   return (
     <>
-      {user && <Navbar />}
-      <Routes>
+    {user && <Navbar />}
+    <Routes>
+    <Route
+    path="/help"
+    element={<Help />}
+    />
         <Route
           path="/login"
           element={user ? <Navigate to="/" replace /> : <Login />}
@@ -115,7 +123,7 @@ const AppRoutes: React.FC = () => {
           path="/teacher/courses"
           element={
             <ProtectedRoute allowedRoles={['teacher']}>
-              <TeacherDashboard />
+              <MyCourses />
             </ProtectedRoute>
           }
         />
@@ -138,6 +146,14 @@ const AppRoutes: React.FC = () => {
           }
         />
         <Route
+          path="/student/profile"
+          element={
+            <ProtectedRoute allowedRoles={['student']}>
+              <MyProfile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/student/enrollments"
           element={
             <ProtectedRoute allowedRoles={['student']}>
@@ -149,7 +165,7 @@ const AppRoutes: React.FC = () => {
           path="/student/grades"
           element={
             <ProtectedRoute allowedRoles={['student']}>
-              <MyEnrollments />
+              <MyGrades />
             </ProtectedRoute>
           }
         />

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axiosInstance from '../../api/axiosInstance';
-import { User, UserCreate, PaginatedResponse } from '../../types';
+import { User, UserCreate, UserUpdate, PaginatedResponse } from '../../types';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
 import { ConfirmationDialog } from '../../components/ConfirmationDialog';
 import { DashboardLayout } from '../../components/DashboardLayout';
@@ -9,6 +9,8 @@ import toast from 'react-hot-toast';
 
 export const UserManagement: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
   const [deleteUserId, setDeleteUserId] = useState<number | null>(null);
   const queryClient = useQueryClient();
 
@@ -50,6 +52,23 @@ export const UserManagement: React.FC = () => {
     },
   });
 
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: UserUpdate }) => {
+      const response = await axiosInstance.patch(`/users/${id}/`, data);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      toast.success('User updated successfully');
+      setShowEditModal(false);
+      setEditingUser(null);
+    },
+    onError: (error: any) => {
+      const message = error.response?.data?.username?.[0] || 'Failed to update user';
+      toast.error(message);
+    },
+  });
+
   const handleCreate = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -63,6 +82,27 @@ export const UserManagement: React.FC = () => {
       last_name: formData.get('last_name') as string,
     };
     createMutation.mutate(data);
+  };
+
+  const handleEdit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editingUser) return;
+
+    const formData = new FormData(e.currentTarget);
+    const data: UserUpdate = {
+      username: formData.get('username') as string,
+      email: formData.get('email') as string,
+      role: formData.get('role') as any,
+      first_name: formData.get('first_name') as string,
+      last_name: formData.get('last_name') as string,
+      is_active: formData.get('is_active') === 'true',
+    };
+    updateMutation.mutate({ id: editingUser.id, data });
+  };
+
+  const openEditModal = (user: User) => {
+    setEditingUser(user);
+    setShowEditModal(true);
   };
 
   if (isLoading) return <LoadingSpinner fullScreen />;
@@ -124,14 +164,20 @@ export const UserManagement: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {user.first_name} {user.last_name}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
+                  <button
+                  onClick={() => openEditModal(user)}
+                  className="text-blue-600 hover:text-blue-900"
+                  >
+                  Edit
+                  </button>
                     <button
-                      onClick={() => setDeleteUserId(user.id)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      Delete
-                    </button>
-                  </td>
+                       onClick={() => setDeleteUserId(user.id)}
+                       className="text-red-600 hover:text-red-900"
+                     >
+                       Delete
+                     </button>
+                   </td>
                 </tr>
               ))}
             </tbody>
@@ -223,6 +269,98 @@ export const UserManagement: React.FC = () => {
                   className="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
                 >
                   {createMutation.isPending ? 'Creating...' : 'Create'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showEditModal && editingUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+            <h2 className="text-xl font-bold mb-4">Edit User</h2>
+            <form onSubmit={handleEdit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Username *</label>
+                <input
+                  name="username"
+                  type="text"
+                  required
+                  defaultValue={editingUser.username}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                <input
+                  name="email"
+                  type="email"
+                  required
+                  defaultValue={editingUser.email}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Role *</label>
+                <select
+                  name="role"
+                  required
+                  defaultValue={editingUser.role}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                >
+                  <option value="base">Base</option>
+                  <option value="student">Student</option>
+                  <option value="teacher">Teacher</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                <input
+                  name="first_name"
+                  type="text"
+                  defaultValue={editingUser.first_name}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                <input
+                  name="last_name"
+                  type="text"
+                  defaultValue={editingUser.last_name}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <select
+                  name="is_active"
+                  defaultValue="true"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                >
+                  <option value="true">Active</option>
+                  <option value="false">Inactive</option>
+                </select>
+              </div>
+              <div className="flex justify-end gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setEditingUser(null);
+                  }}
+                  className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={updateMutation.isPending}
+                  className="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {updateMutation.isPending ? 'Updating...' : 'Update'}
                 </button>
               </div>
             </form>
