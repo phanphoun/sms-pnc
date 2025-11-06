@@ -108,20 +108,21 @@ class CourseSerializer(serializers.ModelSerializer):
 
 class EnrollmentSerializer(serializers.ModelSerializer):
     """Serializer for Enrollment model."""
-    
+
     student_detail = StudentProfileSerializer(source='student', read_only=True)
     course_detail = CourseSerializer(source='course', read_only=True)
     student_id = serializers.PrimaryKeyRelatedField(
         queryset=StudentProfile.objects.all(),
         source='student',
-        required=True
+        required=False,  # Make optional for creation - will be set by view
+        allow_null=True
     )
     course_id = serializers.PrimaryKeyRelatedField(
         queryset=Course.objects.all(),
         source='course',
         required=True
     )
-    
+
     class Meta:
         model = Enrollment
         fields = [
@@ -130,6 +131,20 @@ class EnrollmentSerializer(serializers.ModelSerializer):
             'enrolled_at', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'enrolled_at', 'created_at', 'updated_at']
+
+    def validate(self, attrs):
+        # Ensure course is active
+        course = attrs.get('course')
+        if course and not course.is_active:
+            raise serializers.ValidationError("Cannot enroll in an inactive course.")
+
+        # Check for existing enrollment
+        student = attrs.get('student')
+        if student and course:
+            if Enrollment.objects.filter(student=student, course=course).exists():
+                raise serializers.ValidationError("Student is already enrolled in this course.")
+
+        return attrs
 
 
 class GradeSerializer(serializers.ModelSerializer):

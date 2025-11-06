@@ -11,29 +11,56 @@ export const Home: React.FC = () => {
     switch (user.role) {
       case 'admin':
         return (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-semibold text-gray-800">Admin Dashboard</h2>
-            <p className="text-gray-600">
-              Welcome, {user.first_name || user.username}! You have full access to manage the system.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+          <div className="space-y-6">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
+              <p className="text-gray-600">Welcome, {user.first_name || user.username}! You have full access to manage the system.</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <Link
                 to="/admin/users"
-                className="p-6 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition"
+                className="group relative overflow-hidden p-6 bg-white border border-gray-200 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
               >
-                <h3 className="text-lg font-semibold text-blue-900">User Management</h3>
-                <p className="text-sm text-blue-700 mt-2">Create and manage user accounts</p>
+                <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-bl-full"></div>
+                <div className="relative">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                  </div>
+                  <h2 className="text-xl font-semibold text-gray-900 mb-2">User Management</h2>
+                  <p className="text-gray-600 text-sm">Create and manage user accounts</p>
+                </div>
               </Link>
+
               <Link
                 to="/admin/courses"
-                className="p-6 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition"
+                className="group relative overflow-hidden p-6 bg-white border border-gray-200 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
               >
-                <h3 className="text-lg font-semibold text-green-900">Course Management</h3>
-                <p className="text-sm text-green-700 mt-2">Manage courses and assignments</p>
+                <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-bl-full"></div>
+                <div className="relative">
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                  </div>
+                  <h2 className="text-xl font-semibold text-gray-900 mb-2">Course Management</h2>
+                  <p className="text-gray-600 text-sm">Manage courses and assignments</p>
+                </div>
               </Link>
-              <div className="p-6 bg-purple-50 border border-purple-200 rounded-lg">
-                <h3 className="text-lg font-semibold text-purple-900">Reports</h3>
-                <p className="text-sm text-purple-700 mt-2">Export student and grade data</p>
+
+              <div className="group relative overflow-hidden p-6 bg-white border border-gray-200 rounded-xl shadow-md">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-bl-full"></div>
+                <div className="relative">
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center mb-4">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                  </div>
+                  <h2 className="text-xl font-semibold text-gray-900 mb-2">System Reports</h2>
+                  <p className="text-gray-600 text-sm">Export data and view analytics</p>
+                  <span className="inline-block mt-2 text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-1 rounded">Coming Soon</span>
+                </div>
               </div>
             </div>
           </div>
@@ -41,67 +68,137 @@ export const Home: React.FC = () => {
 
       case 'teacher':
         return (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-semibold text-gray-800">Teacher Dashboard</h2>
-            <p className="text-gray-600">
-              Welcome, {user.first_name || user.username}! Manage your courses and student grades.
-            </p>
-            {user.teacher_profile && (
-              <p className="text-sm text-gray-500">
-                Department: {user.teacher_profile.department || 'Not specified'}
-              </p>
-            )}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+          <div className="space-y-6">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Teacher Dashboard</h1>
+              <p className="text-gray-600">Welcome, {user.first_name || user.username}! Manage your courses and student grades.</p>
+              {user.teacher_profile && (
+                <p className="text-sm text-gray-500">
+                  Department: {user.teacher_profile.department || 'Not specified'}
+                </p>
+              )}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <Link
                 to="/teacher/courses"
-                className="p-6 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition"
+                className="group relative overflow-hidden p-6 bg-white border border-gray-200 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
               >
-                <h3 className="text-lg font-semibold text-blue-900">My Courses</h3>
-                <p className="text-sm text-blue-700 mt-2">View and manage your courses</p>
+                <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-bl-full"></div>
+                <div className="relative">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                  </div>
+                  <h2 className="text-xl font-semibold text-gray-900 mb-2">My Courses</h2>
+                  <p className="text-gray-600 text-sm">View and manage your courses</p>
+                </div>
               </Link>
+
               <Link
                 to="/teacher/grades"
-                className="p-6 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition"
+                className="group relative overflow-hidden p-6 bg-white border border-gray-200 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
               >
-                <h3 className="text-lg font-semibold text-green-900">Grade Entry</h3>
-                <p className="text-sm text-green-700 mt-2">Assign and update student grades</p>
+                <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-bl-full"></div>
+                <div className="relative">
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h2 className="text-xl font-semibold text-gray-900 mb-2">Grade Management</h2>
+                  <p className="text-gray-600 text-sm">Enter and manage student grades</p>
+                </div>
               </Link>
+
+              <div className="group relative overflow-hidden p-6 bg-white border border-gray-200 rounded-xl shadow-md">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-bl-full"></div>
+                <div className="relative">
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center mb-4">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                  </div>
+                  <h2 className="text-xl font-semibold text-gray-900 mb-2">Student Reports</h2>
+                  <p className="text-gray-600 text-sm">Generate reports and analytics</p>
+                  <span className="inline-block mt-2 text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-1 rounded">Coming Soon</span>
+                </div>
+              </div>
             </div>
           </div>
         );
 
       case 'student':
         return (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-semibold text-gray-800">Student Dashboard</h2>
-            <p className="text-gray-600">
-              Welcome, {user.first_name || user.username}!
-            </p>
-            {user.student_profile && (
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-700">
-                  <span className="font-semibold">Enrollment Number:</span> {user.student_profile.enrollment_number}
-                </p>
-                <p className="text-sm text-gray-700">
-                  <span className="font-semibold">Email:</span> {user.email}
-                </p>
-              </div>
-            )}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+          <div className="space-y-6">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Student Dashboard</h1>
+              <p className="text-gray-600">Welcome, {user.first_name || user.username}! Access your courses and grades.</p>
+              {user.student_profile && (
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-xl border border-blue-200/50">
+                  <div className="flex items-center mb-2">
+                    <svg className="w-4 h-4 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    <p className="text-sm font-semibold text-blue-900">Student Information</p>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                    <p className="text-gray-700">
+                      <span className="font-medium">Enrollment Number:</span> {user.student_profile.enrollment_number}
+                    </p>
+                    <p className="text-gray-700">
+                      <span className="font-medium">Email:</span> {user.email}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <Link
                 to="/student/enrollments"
-                className="p-6 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition"
+                className="group relative overflow-hidden p-6 bg-white border border-gray-200 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
               >
-                <h3 className="text-lg font-semibold text-blue-900">My Enrollments</h3>
-                <p className="text-sm text-blue-700 mt-2">View your enrolled courses</p>
+                <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-bl-full"></div>
+                <div className="relative">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                  </div>
+                  <h2 className="text-xl font-semibold text-gray-900 mb-2">My Enrollments</h2>
+                  <p className="text-gray-600 text-sm">View your enrolled courses</p>
+                </div>
               </Link>
+
               <Link
                 to="/student/grades"
-                className="p-6 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition"
+                className="group relative overflow-hidden p-6 bg-white border border-gray-200 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
               >
-                <h3 className="text-lg font-semibold text-green-900">My Grades</h3>
-                <p className="text-sm text-green-700 mt-2">Check your academic performance</p>
+                <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-bl-full"></div>
+                <div className="relative">
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h2 className="text-xl font-semibold text-gray-900 mb-2">My Grades</h2>
+                  <p className="text-gray-600 text-sm">Check your academic performance</p>
+                </div>
               </Link>
+
+              <div className="group relative overflow-hidden p-6 bg-white border border-gray-200 rounded-xl shadow-md">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-bl-full"></div>
+                <div className="relative">
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center mb-4">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <h2 className="text-xl font-semibold text-gray-900 mb-2">Course Schedule</h2>
+                  <p className="text-gray-600 text-sm">View your class timetable</p>
+                  <span className="inline-block mt-2 text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-1 rounded">Coming Soon</span>
+                </div>
+              </div>
             </div>
           </div>
         );
