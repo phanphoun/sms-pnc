@@ -15,6 +15,8 @@ import { Home } from './pages/Home';
 import { AdminDashboard } from './pages/admin/Dashboard';
 import { UserManagement } from './pages/admin/UserManagement';
 import { CourseManagement } from './pages/admin/CourseManagement';
+import { EnrollmentManagement } from './pages/admin/EnrollmentManagement';
+import { SystemSettings } from './pages/admin/SystemSettings';
 import { TeacherDashboard } from './pages/teacher/Dashboard';
 import { GradeEntry } from './pages/teacher/GradeEntry';
 import { MyCourses } from './pages/teacher/MyCourses';
@@ -106,6 +108,22 @@ const AppRoutes: React.FC = () => {
           element={
             <ProtectedRoute allowedRoles={['admin']}>
               <CourseManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/enrollments"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <EnrollmentManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/settings"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <SystemSettings />
             </ProtectedRoute>
           }
         />
