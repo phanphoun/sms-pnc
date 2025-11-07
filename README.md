@@ -1,6 +1,14 @@
-# Student Management System
+# 🎓 Student Management System (SMS)
 
-A full-stack web application for managing students, teachers, courses, enrollments, and grades with role-based access control.
+[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](https://github.com/phanphoun/sms-pnc)
+[![Django](https://img.shields.io/badge/Django-5.0-green.svg)](https://www.djangoproject.com/)
+[![React](https://img.shields.io/badge/React-18.2-blue.svg)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)](https://www.typescriptlang.org/)
+[![Release](https://img.shields.io/badge/release-v2.0-green.svg)](https://github.com/phanphoun/sms-pnc/releases/tag/v2.0)
+
+A comprehensive full-stack web application for educational institutions to manage students, teachers, courses, enrollments, and grades with advanced role-based access control, modern UI/UX, and robust functionality.
+
+**✨ Features**: JWT Authentication, Role-Based Access, CRUD Operations, Modern Animations, Responsive Design, API Documentation
 
 ## 🏗️ Architecture
 
