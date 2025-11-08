@@ -1,0 +1,417 @@
+# Test Document: How to Write Test Cases for Student Management System
+
+## Overview
+This document provides a comprehensive guide on writing test cases for the Student Management System (SMS) using pytest and Django's testing framework. It includes examples from the existing test suite and best practices for writing effective tests.
+
+## Testing Framework and Tools
+
+### Tools Used
+- **pytest**: Testing framework for Python
+- **pytest-django**: Django integration for pytest
+- **factory_boy**: Factory library for creating test data
+- **Faker**: Library for generating fake data
+- **Django REST Framework test tools**: For API testing
+
+### Installation
+```bash
+pip install pytest pytest-django factory_boy faker
+```
+
+### Configuration
+- `pytest.ini` contains pytest configuration
+- `@pytest.mark.django_db` decorator enables database access for tests
+
+## Test Structure
+
+### Directory Structure
+```
+backend/students/tests/
+├── __init__.py
+├── factories.py          # Test data factories
+├── test_models.py        # Model tests
+├── test_api.py          # API endpoint tests
+└── test_permissions.py   # Permission tests (if separate)
+```
+
+### Test File Naming Convention
+- `test_*.py` for test files
+- Class names: `Test<ModelName>` or `Test<FeatureName>`
+- Method names: `test_<descriptive_action>`
+
+## Writing Test Cases
+
+### 1. Model Tests (test_models.py)
+
+Model tests verify the behavior of Django models, including:
+- Field validation
+- Unique constraints
+- Model methods
+- Relationships
+
+#### Example: Testing User Model
+```python
+@pytest.mark.django_db
+class TestUserModel:
+    """Tests for the User model."""
+    
+    def test_create_user(self):
+        user = UserFactory(username='testuser', role='student')
+        assert user.username == 'testuser'
+        assert user.role == 'student'
+        assert str(user) == 'testuser (Student)'
+    
+    def test_user_email_unique(self):
+        UserFactory(email='test@example.com')
+        with pytest.raises(IntegrityError):
+            UserFactory(email='test@example.com')
+    
+    def test_user_roles(self):
+        admin = UserFactory(role='admin')
+        teacher = UserFactory(role='teacher')
+        student = UserFactory(role='student')
+        base = UserFactory(role='base')
+        
+        assert admin.role == 'admin'
+        assert teacher.role == 'teacher'
+        assert student.role == 'student'
+        assert base.role == 'base'
+```
+
+**Key Points:**
+- Use `@pytest.mark.django_db` for database tests
+- Use factories to create test data
+- Test both positive and negative cases
+- Test model string representations
+- Test unique constraints with IntegrityError
+
+#### Example: Testing Relationships and Constraints
+```python
+@pytest.mark.django_db
+class TestEnrollmentModel:
+    """Tests for the Enrollment model."""
+    
+    def test_create_enrollment(self):
+        enrollment = EnrollmentFactory()
+        assert enrollment.student is not None
+        assert enrollment.course is not None
+    
+    def test_enrollment_unique_together(self):
+        student = StudentProfileFactory()
+        course = CourseFactory()
+        EnrollmentFactory(student=student, course=course)
+        
+        with pytest.raises(IntegrityError):
+            EnrollmentFactory(student=student, course=course)
+```
+
+### 2. API Tests (test_api.py)
+
+API tests verify REST endpoints, including:
+- Authentication and authorization
+- CRUD operations
+- Permission enforcement
+- Response formats
+- Error handling
+
+#### Setup Fixtures
+```python
+@pytest.fixture
+def api_client():
+    return APIClient()
+
+@pytest.fixture
+def admin_user():
+    user = AdminUserFactory()
+    user.set_password('password123')
+    user.save()
+    return user
+
+@pytest.fixture
+def teacher_user():
+    user = TeacherUserFactory()
+    user.set_password('password123')
+    user.save()
+    return user
+
+@pytest.fixture
+def student_user():
+    user = StudentUserFactory()
+    user.set_password('password123')
+    user.save()
+    return user
+```
+
+#### Example: Authentication Tests
+```python
+@pytest.mark.django_db
+class TestAuthentication:
+    """Tests for authentication endpoints."""
+    
+    def test_login_success(self, api_client, admin_user):
+        url = reverse('token_obtain_pair')
+        data = {'username': admin_user.username, 'password': 'password123'}
+        response = api_client.post(url, data)
+        
+        assert response.status_code == status.HTTP_200_OK
+        assert 'access' in response.data
+        assert 'refresh' in response.data
+    
+    def test_login_invalid_credentials(self, api_client):
+        url = reverse('token_obtain_pair')
+        data = {'username': 'invalid', 'password': 'wrong'}
+        response = api_client.post(url, data)
+        
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+```
+
+**Key Points:**
+- Use `APIClient` for making requests
+- Use `force_authenticate()` to simulate logged-in users
+- Test both success and failure scenarios
+- Verify response status codes and data
+
+#### Example: Permission Tests
+```python
+@pytest.mark.django_db
+class TestUserManagement:
+    """Tests for user management (admin only)."""
+    
+    def test_admin_can_list_users(self, api_client, admin_user):
+        api_client.force_authenticate(user=admin_user)
+        url = reverse('user-list')
+        response = api_client.get(url)
+        
+        assert response.status_code == status.HTTP_200_OK
+    
+    def test_admin_can_create_user(self, api_client, admin_user):
+        api_client.force_authenticate(user=admin_user)
+        url = reverse('user-list')
+        data = {
+            'username': 'newuser',
+            'email': 'newuser@example.com',
+            'password': 'testpass123',
+            'password2': 'testpass123',
+            'role': 'student'
+        }
+        response = api_client.post(url, data)
+        
+        assert response.status_code == status.HTTP_201_CREATED
+        assert User.objects.filter(username='newuser').exists()
+    
+    def test_non_admin_cannot_create_user(self, api_client, student_user):
+        api_client.force_authenticate(user=student_user)
+        url = reverse('user-list')
+        data = {
+            'username': 'newuser',
+            'email': 'newuser@example.com',
+            'password': 'testpass123',
+            'password2': 'testpass123',
+            'role': 'student'
+        }
+        response = api_client.post(url, data)
+        
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+```
+
+#### Example: CRUD Operations
+```python
+@pytest.mark.django_db
+class TestCourse:
+    """Tests for course endpoints."""
+    
+    def test_teacher_can_create_course(self, api_client, teacher_user):
+        api_client.force_authenticate(user=teacher_user)
+        url = reverse('course-list')
+        data = {
+            'title': 'New Course',
+            'code': 'NC101',
+            'description': 'A new course',
+            'is_active': True
+        }
+        response = api_client.post(url, data)
+        
+        assert response.status_code == status.HTTP_201_CREATED
+        assert Course.objects.filter(code='NC101').exists()
+    
+    def test_student_can_view_courses(self, api_client, student_user):
+        CourseFactory.create_batch(3)
+        api_client.force_authenticate(user=student_user)
+        url = reverse('course-list')
+        response = api_client.get(url)
+        
+        assert response.status_code == status.HTTP_200_OK
+    
+    def test_student_cannot_create_course(self, api_client, student_user):
+        api_client.force_authenticate(user=student_user)
+        url = reverse('course-list')
+        data = {
+            'title': 'New Course',
+            'code': 'NC101',
+            'description': 'A new course',
+            'is_active': True
+        }
+        response = api_client.post(url, data)
+        
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+```
+
+### 3. Factory Classes (factories.py)
+
+Factories create test data using factory_boy:
+
+```python
+class UserFactory(DjangoModelFactory):
+    class Meta:
+        model = User
+    
+    username = factory.Sequence(lambda n: f'user{n}')
+    email = factory.LazyAttribute(lambda obj: f'{obj.username}@example.com')
+    role = 'base'
+    first_name = factory.Faker('first_name')
+    last_name = factory.Faker('last_name')
+
+class StudentProfileFactory(DjangoModelFactory):
+    class Meta:
+        model = StudentProfile
+    
+    user = factory.SubFactory(StudentUserFactory)
+    enrollment_number = factory.Sequence(lambda n: f'ENR{n:06d}')
+    date_of_birth = factory.Faker('date_of_birth', minimum_age=18, maximum_age=25)
+    phone_number = factory.Faker('phone_number')
+    address = factory.Faker('address')
+```
+
+**Factory Patterns:**
+- `Sequence`: Generate unique values
+- `LazyAttribute`: Compute values from other fields
+- `SubFactory`: Create related objects
+- `Faker`: Generate realistic fake data
+
+## Best Practices for Writing Test Cases
+
+### 1. Test Organization
+- Group related tests in classes
+- Use descriptive test method names
+- One assertion per test when possible
+- Test both happy path and error cases
+
+### 2. Test Data Management
+- Use factories for consistent data creation
+- Avoid hard-coded test data
+- Clean up after tests (pytest handles this)
+- Use fixtures for reusable setup
+
+### 3. Testing Patterns
+- **Unit Tests**: Test individual functions/methods
+- **Integration Tests**: Test API endpoints with database
+- **Permission Tests**: Test access control thoroughly
+- **Edge Cases**: Test boundaries and error conditions
+
+### 4. Assertions
+- Check status codes for API tests
+- Verify data integrity after operations
+- Test error responses
+- Validate response structure
+
+### 5. Common Test Scenarios
+- Authentication required endpoints
+- Role-based permissions
+- CRUD operations for each model
+- Unique constraint violations
+- Foreign key relationships
+- Data validation
+- Filtering and searching
+
+## Running Tests
+
+### Basic Commands
+```bash
+# Run all tests
+pytest
+
+# Run specific test file
+pytest students/tests/test_models.py
+
+# Run specific test class
+pytest students/tests/test_models.py::TestUserModel
+
+# Run specific test method
+pytest students/tests/test_models.py::TestUserModel::test_create_user
+
+# Run with coverage
+pytest --cov=students --cov-report=html
+
+# Run verbose output
+pytest -v
+```
+
+### Test Configuration
+```ini
+# pytest.ini
+[tool:pytest]
+DJANGO_SETTINGS_MODULE = student_mgmt.settings
+python_files = test_*.py
+python_classes = Test*
+python_functions = test_*
+addopts = -v --tb=short
+```
+
+## Example Test Case Template
+
+```python
+@pytest.mark.django_db
+class TestFeatureName:
+    """Tests for [Feature Description]."""
+    
+    def test_success_scenario(self, api_client, user_fixture):
+        # Setup
+        api_client.force_authenticate(user=user_fixture)
+        
+        # Action
+        url = reverse('endpoint-name')
+        data = {'field': 'value'}
+        response = api_client.post(url, data)
+        
+        # Assertions
+        assert response.status_code == status.HTTP_201_CREATED
+        assert Model.objects.filter(field='value').exists()
+    
+    def test_permission_denied(self, api_client, unauthorized_user):
+        # Setup
+        api_client.force_authenticate(user=unauthorized_user)
+        
+        # Action
+        url = reverse('endpoint-name')
+        data = {'field': 'value'}
+        response = api_client.post(url, data)
+        
+        # Assertions
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+    
+    def test_validation_error(self, api_client, user_fixture):
+        # Setup
+        api_client.force_authenticate(user=user_fixture)
+        
+        # Action
+        url = reverse('endpoint-name')
+        data = {'invalid_field': 'invalid_value'}
+        response = api_client.post(url, data)
+        
+        # Assertions
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert 'error' in response.data
+```
+
+## Testing Checklist
+
+- [ ] Authentication required for protected endpoints
+- [ ] Correct permissions for each user role
+- [ ] CRUD operations work for authorized users
+- [ ] Data validation prevents invalid input
+- [ ] Unique constraints are enforced
+- [ ] Foreign key relationships are maintained
+- [ ] Error responses provide meaningful messages
+- [ ] Edge cases are handled properly
+- [ ] Performance is acceptable for list endpoints
+
+This testing approach ensures the SMS application is robust, secure, and functions correctly across all user roles and scenarios.

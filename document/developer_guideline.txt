@@ -1,0 +1,311 @@
+# Developer Guideline for Student Management System
+
+## Overview
+This document provides a comprehensive guide for developers working on the Student Management System (SMS). It explains the architecture, key components, and detailed functionality of both backend and frontend code.
+
+## Backend Architecture (Django REST Framework)
+
+### Models
+The backend uses Django models to define the data structure. All models inherit from `TimeStampedModel` which provides `created_at` and `updated_at` fields.
+
+#### TimeStampedModel
+- **Purpose**: Abstract base class for timestamping
+- **Fields**:
+  - `created_at`: Auto-set on creation
+  - `updated_at`: Auto-updated on save
+- **Usage**: All other models inherit from this
+
+#### User Model
+- **Extends**: Django's AbstractUser
+- **Key Fields**:
+  - `role`: Choice field (base, student, teacher, admin)
+  - `email`: Unique email field
+- **Methods**:
+  - `__str__()`: Returns "username (role)"
+- **Purpose**: Custom user model with role-based access
+
+#### StudentProfile Model
+- **Purpose**: Extended profile for student users
+- **Key Fields**:
+  - `user`: OneToOneField to User (limited to role='student')
+  - `enrollment_number`: Unique identifier
+  - `date_of_birth`, `phone_number`, `address`: Personal details
+- **Validation**: Phone number regex validation
+- **Relationships**: Linked to User, Enrollments, Grades
+
+#### TeacherProfile Model
+- **Purpose**: Extended profile for teacher users
+- **Key Fields**:
+  - `user`: OneToOneField to User (limited to role='teacher')
+  - `department`: Academic department
+- **Relationships**: Linked to User, Courses (as teacher), Grades (as grader)
+
+#### Course Model
+- **Purpose**: Represents academic courses
+- **Key Fields**:
+  - `title`, `code` (unique), `description`
+  - `teacher`: ForeignKey to TeacherProfile
+  - `is_active`: Boolean for course status
+- **Relationships**: Enrollments, Grades
+
+#### Enrollment Model
+- **Purpose**: Links students to courses
+- **Key Fields**:
+  - `student`: ForeignKey to StudentProfile
+  - `course`: ForeignKey to Course
+  - `enrolled_at`: Timestamp
+- **Constraints**: Unique together (student, course)
+
+#### Grade Model
+- **Purpose**: Student performance records
+- **Key Fields**:
+  - `student`: ForeignKey to StudentProfile
+  - `course`: ForeignKey to Course
+  - `teacher`: ForeignKey to TeacherProfile (grader)
+  - `value`: Choice field (A-F grades)
+  - `graded_at`: Timestamp
+- **Constraints**: Unique together (student, course)
+
+### Views and API Endpoints
+
+#### Authentication Views
+- **current_user()**: Returns current authenticated user info
+- **Purpose**: GET /api/v1/me/ endpoint
+- **Permissions**: Authenticated users only
+
+#### UserViewSet
+- **Purpose**: Full CRUD for user management
+- **Permissions**: Admin only
+- **Features**:
+  - Filtering by role, search by username/email
+  - Different serializers for create/update operations
+- **Endpoints**:
+  - GET/POST /api/v1/users/
+  - GET/PATCH/DELETE /api/v1/users/{id}/
+
+#### StudentProfileViewSet
+- **Purpose**: Student profile management
+- **Permissions**: Role-based (admin full, teacher view enrolled students, student own profile)
+- **Features**:
+  - `me` action: GET/PUT/PATCH /api/v1/students/me/
+  - Filtered queryset based on user role
+- **Key Methods**:
+  - `get_queryset()`: Filters based on user permissions
+  - `me()`: Handles current student profile operations
+
+#### TeacherProfileViewSet
+- **Purpose**: Teacher profile management
+- **Permissions**: Admin full, teacher own profile
+- **Features**:
+  - `me` action: GET/PUT/PATCH /api/v1/teachers/me/
+- **Similar structure to StudentProfileViewSet**
+
+#### CourseViewSet
+- **Purpose**: Course management
+- **Permissions**: Admin full, teacher own courses, student view active courses
+- **Features**:
+  - `perform_create()`: Auto-assigns teacher if teacher creates course
+- **Key Methods**:
+  - `get_queryset()`: Role-based filtering
+  - `perform_create()`: Automatic teacher assignment
+
+#### EnrollmentViewSet
+- **Purpose**: Course enrollment management
+- **Permissions**: Admin full, student self-enrollment, teacher view own courses
+- **Features**:
+  - `perform_create()`: Auto-assigns student if student creates enrollment
+
+#### GradeViewSet
+- **Purpose**: Grade management
+- **Permissions**: Admin full, teacher own courses, student view own grades
+- **Features**:
+  - `perform_create()`: Auto-assigns teacher as grader
+
+#### Export Functions
+- **export_students_csv()**: Exports student data to CSV
+- **Purpose**: Admin-only CSV export of all students
+- **Fields**: ID, username, email, names, enrollment, DOB, phone, address
+
+- **export_grades_csv()**: Exports grade data to CSV
+- **Purpose**: Admin-only CSV export of grades, optional course filter
+- **Fields**: ID, student info, course info, grade, teacher, timestamp
+
+### Permissions
+Custom permission classes control access:
+- `IsAdmin`: Admin role required
+- `IsTeacher`: Teacher role required
+- `IsStudent`: Student role required
+- `IsOwnerOrAdmin`: Owner or admin
+- `IsTeacherOfCourse`: Teacher assigned to course
+- `IsAdminOrTeacher`: Admin or teacher
+- `IsAdminOrStudent`: Admin or student
+
+### Serializers
+Handle data validation and transformation:
+- User serializers for different operations
+- Profile serializers for extended data
+- Course, Enrollment, Grade serializers
+- CurrentUserSerializer for authenticated user info
+
+### Filters
+Custom filters for advanced querying:
+- UserFilter, StudentProfileFilter, etc.
+- Support search, ordering, custom filters
+
+## Frontend Architecture (React + TypeScript)
+
+### Core Components
+
+#### App.tsx
+- **Purpose**: Main application component with routing
+- **Key Features**:
+  - QueryClient for data fetching (React Query)
+  - AuthProvider for authentication state
+  - ToastProvider for notifications
+  - ProtectedRoute component for role-based access
+
+#### ProtectedRoute Component
+- **Function**: Wraps routes requiring authentication/roles
+- **Logic**:
+  - Shows loading spinner during auth check
+  - Redirects to login if not authenticated
+  - Redirects to home if role not allowed
+- **Props**: children, allowedRoles
+
+#### AppRoutes Component
+- **Purpose**: Defines all application routes
+- **Structure**:
+  - Public routes: /login, /help
+  - Protected routes by role: admin, teacher, student
+  - Navbar shown only for authenticated users
+
+### Authentication System
+
+#### AuthContext.tsx
+- **Purpose**: Manages authentication state
+- **Features**:
+  - Login/logout functions
+  - Token management (access/refresh)
+  - Automatic token refresh
+  - User state persistence
+
+#### useAuth Hook
+- **Purpose**: Provides authentication state and functions
+- **Usage**: Used throughout app for auth checks
+
+### API Integration
+
+#### axiosInstance.ts
+- **Purpose**: Configured Axios instance
+- **Features**:
+  - Base URL configuration
+  - Request/response interceptors
+  - Automatic token attachment
+  - Error handling
+
+### Components
+
+#### Navbar.tsx
+- **Purpose**: Navigation bar
+- **Features**: Role-based menu items, logout
+
+#### LoadingSpinner.tsx
+- **Purpose**: Loading indicator component
+
+#### ConfirmationDialog.tsx
+- **Purpose**: Confirmation dialogs
+
+#### ToastProvider.tsx
+- **Purpose**: Toast notifications system
+
+### Forms
+Type-safe forms using React Hook Form + Zod:
+- StudentForm, TeacherForm, CourseForm, GradeForm
+- Validation schemas for data integrity
+
+### Pages Structure
+
+#### Admin Pages
+- Dashboard: Overview and quick actions
+- UserManagement: CRUD operations on users
+- CourseManagement: Course administration
+- EnrollmentManagement: Enrollment oversight
+- SystemSettings: System configuration
+
+#### Teacher Pages
+- Dashboard: Teacher overview
+- MyCourses: Course management
+- GradeEntry: Grade assignment
+
+#### Student Pages
+- Dashboard: Student overview
+- MyProfile: Profile management
+- MyEnrollments: Course enrollment
+- MyGrades: Grade viewing
+
+### Key Frontend Functions
+
+#### Data Fetching
+- Uses React Query for server state management
+- Automatic caching, background refetching
+- Optimistic updates for better UX
+
+#### Form Handling
+- React Hook Form for performance
+- Zod schemas for validation
+- TypeScript for type safety
+
+#### State Management
+- Context API for authentication
+- React Query for server data
+- Local component state for UI
+
+### Styling
+- Tailwind CSS for utility-first styling
+- Custom CSS animations
+- Responsive design
+- Dark mode ready (structure in place)
+
+## Development Workflow
+
+### Backend Development
+1. Define model in models.py
+2. Create serializer in serializers.py
+3. Create ViewSet in views.py
+4. Add permissions in permissions.py
+5. Register URL in urls.py
+6. Write tests in tests/
+7. Update admin.py if needed
+
+### Frontend Development
+1. Define TypeScript types in types/index.ts
+2. Create API functions if needed
+3. Build React components
+4. Create pages with routing
+5. Add form validation with Zod
+6. Style with Tailwind CSS
+
+### Testing
+- Backend: pytest with factory_boy for fixtures
+- Frontend: Manual testing (unit tests can be added)
+
+### Deployment
+- Backend: Django with Gunicorn/Nginx
+- Frontend: Vite build to static files
+- Database: PostgreSQL in production
+
+## Security Features
+- JWT authentication with refresh tokens
+- Role-based permissions
+- Input validation
+- CORS configuration
+- Password hashing
+- SQL injection protection
+
+## Performance Optimizations
+- Database select_related/prefetch_related
+- React Query caching
+- Lazy loading components
+- Optimized queries with filtering
+
+This guideline covers the core functionality and architecture. Refer to specific files for implementation details.
